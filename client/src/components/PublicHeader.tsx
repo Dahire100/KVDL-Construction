@@ -46,7 +46,7 @@ export function PublicHeader() {
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
-          <Link href="/admin">
+          <Link href="/login">
             <Button variant="outline" data-testid="link-admin">
               Admin Login
             </Button>

@@ -11,6 +11,7 @@ import Projects from "@/pages/Projects";
 import ProjectDetail from "@/pages/ProjectDetail";
 import Gallery from "@/pages/Gallery";
 import Contact from "@/pages/Contact";
+import Login from "@/pages/Login";
 import AdminDashboard from "@/pages/admin/Dashboard";
 import ManageProjects from "@/pages/admin/ManageProjects";
 import GalleryManagement from "@/pages/admin/GalleryManagement";
@@ -51,6 +52,11 @@ function Router() {
         <PublicLayout>
           <Contact />
         </PublicLayout>
+      </Route>
+
+      {/* Login Route */}
+      <Route path="/login">
+        <Login />
       </Route>
 
       {/* Admin Routes */}

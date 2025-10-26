@@ -11,9 +11,27 @@ import {
 } from "@/components/ui/sidebar";
 import { Link, useLocation } from "wouter";
 import { LayoutDashboard, FolderKanban, Image, FileText, Settings, LogOut, Home } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export function AppSidebar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const { toast } = useToast();
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("POST", "/api/auth/logout", {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      toast({ title: "Success", description: "Logged out successfully" });
+      setLocation("/login");
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to logout", variant: "destructive" });
+    },
+  });
 
   const menuItems = [
     {
@@ -90,9 +108,13 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton data-testid="sidebar-button-logout">
+            <SidebarMenuButton 
+              onClick={() => logoutMutation.mutate()}
+              disabled={logoutMutation.isPending}
+              data-testid="sidebar-button-logout"
+            >
               <LogOut />
-              <span>Logout</span>
+              <span>{logoutMutation.isPending ? "Logging out..." : "Logout"}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
