@@ -1,16 +1,82 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import passport from "passport";
 import { storage } from "./storage";
 import { 
   insertProjectSchema,
   insertGalleryImageSchema,
   insertCMSPageSchema,
   insertSettingsSchema,
-  insertContactSubmissionSchema
+  insertContactSubmissionSchema,
+  loginSchema,
+  type SafeUser
 } from "@shared/schema";
 
+// Authentication middleware
+function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ error: "Unauthorized" });
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Projects Routes
+  // Authentication Routes
+  app.post("/api/auth/login", (req, res, next) => {
+    const result = loginSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ error: "Invalid credentials" });
+    }
+
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) {
+        return next(err);
+      }
+      if (!user) {
+        return res.status(401).json({ error: info?.message || "Invalid credentials" });
+      }
+      req.login(user, (err) => {
+        if (err) {
+          return next(err);
+        }
+        const safeUser: SafeUser = {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          createdAt: user.createdAt,
+        };
+        res.json({ user: safeUser });
+      });
+    })(req, res, next);
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ error: "Failed to logout" });
+      }
+      res.json({ message: "Logged out successfully" });
+    });
+  });
+
+  app.get("/api/auth/user", (req, res) => {
+    if (req.isAuthenticated() && req.user) {
+      const user = req.user as any;
+      const safeUser: SafeUser = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
+      };
+      res.json({ user: safeUser });
+    } else {
+      res.json({ user: null });
+    }
+  });
+
+  // Projects Routes (Protected)
   app.get("/api/projects", async (_req, res) => {
     try {
       const projects = await storage.getAllProjects();
@@ -32,7 +98,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/projects", async (req, res) => {
+  app.post("/api/projects", requireAuth, async (req, res) => {
     try {
       const result = insertProjectSchema.safeParse(req.body);
       if (!result.success) {
@@ -45,7 +111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/projects/:id", async (req, res) => {
+  app.patch("/api/projects/:id", requireAuth, async (req, res) => {
     try {
       const result = insertProjectSchema.safeParse(req.body);
       if (!result.success) {
@@ -61,7 +127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/projects/:id", async (req, res) => {
+  app.delete("/api/projects/:id", requireAuth, async (req, res) => {
     try {
       const deleted = await storage.deleteProject(req.params.id);
       if (!deleted) {
@@ -95,7 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/gallery", async (req, res) => {
+  app.post("/api/gallery", requireAuth, async (req, res) => {
     try {
       const result = insertGalleryImageSchema.safeParse(req.body);
       if (!result.success) {
@@ -108,7 +174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/gallery/:id", async (req, res) => {
+  app.delete("/api/gallery/:id", requireAuth, async (req, res) => {
     try {
       const deleted = await storage.deleteGalleryImage(req.params.id);
       if (!deleted) {
@@ -121,7 +187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // CMS Pages Routes
-  app.get("/api/cms", async (_req, res) => {
+  app.get("/api/cms", requireAuth, async (_req, res) => {
     try {
       const pages = await storage.getAllCMSPages();
       res.json(pages);
@@ -130,7 +196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/cms/:id", async (req, res) => {
+  app.get("/api/cms/:id", requireAuth, async (req, res) => {
     try {
       const page = await storage.getCMSPage(req.params.id);
       if (!page) {
@@ -142,7 +208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/cms", async (req, res) => {
+  app.post("/api/cms", requireAuth, async (req, res) => {
     try {
       const result = insertCMSPageSchema.safeParse(req.body);
       if (!result.success) {
@@ -155,7 +221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/cms/:id", async (req, res) => {
+  app.patch("/api/cms/:id", requireAuth, async (req, res) => {
     try {
       const result = insertCMSPageSchema.safeParse(req.body);
       if (!result.success) {
@@ -171,7 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/cms/:id", async (req, res) => {
+  app.delete("/api/cms/:id", requireAuth, async (req, res) => {
     try {
       const deleted = await storage.deleteCMSPage(req.params.id);
       if (!deleted) {
@@ -184,7 +250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Settings Routes
-  app.get("/api/settings", async (_req, res) => {
+  app.get("/api/settings", requireAuth, async (_req, res) => {
     try {
       const settings = await storage.getSettings();
       res.json(settings);
@@ -193,7 +259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/settings", async (req, res) => {
+  app.patch("/api/settings", requireAuth, async (req, res) => {
     try {
       const result = insertSettingsSchema.safeParse(req.body);
       if (!result.success) {

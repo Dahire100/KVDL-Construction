@@ -3,9 +3,11 @@ import {
   type GalleryImage, type InsertGalleryImage,
   type CMSPage, type InsertCMSPage,
   type Settings, type InsertSettings,
-  type ContactSubmission, type InsertContactSubmission
+  type ContactSubmission, type InsertContactSubmission,
+  type User, type InsertUser
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import bcrypt from "bcryptjs";
 
 // Image paths for sample data
 const downtownImage = "/attached_assets/generated_images/Downtown_office_complex_project_a7188b97.png";
@@ -42,6 +44,12 @@ export interface IStorage {
   // Contact Submissions
   createContactSubmission(submission: InsertContactSubmission): Promise<ContactSubmission>;
   getAllContactSubmissions(): Promise<ContactSubmission[]>;
+
+  // Users
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserById(id: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  verifyPassword(userId: string, password: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -50,12 +58,14 @@ export class MemStorage implements IStorage {
   private cmsPages: Map<string, CMSPage>;
   private settings: Settings;
   private contactSubmissions: Map<string, ContactSubmission>;
+  private users: Map<string, User>;
 
   constructor() {
     this.projects = new Map();
     this.galleryImages = new Map();
     this.cmsPages = new Map();
     this.contactSubmissions = new Map();
+    this.users = new Map();
     
     // Initialize with default settings
     this.settings = {
@@ -77,6 +87,8 @@ export class MemStorage implements IStorage {
 
     // Seed with sample data
     this.seedData();
+    // Create default admin user
+    this.seedAdminUser();
   }
 
   private seedData() {
@@ -303,6 +315,48 @@ export class MemStorage implements IStorage {
     return Array.from(this.contactSubmissions.values()).sort((a, b) => 
       (b.submittedAt?.getTime() || 0) - (a.submittedAt?.getTime() || 0)
     );
+  }
+
+  // Users
+  private async seedAdminUser() {
+    const adminId = randomUUID();
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+    const admin: User = {
+      id: adminId,
+      username: "admin",
+      password: hashedPassword,
+      email: "admin@kvdlconstruction.com",
+      role: "admin",
+      createdAt: new Date(),
+    };
+    this.users.set(adminId, admin);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(u => u.username === username);
+  }
+
+  async getUserById(id: string): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const id = randomUUID();
+    const hashedPassword = await bcrypt.hash(insertUser.password, 10);
+    const user: User = {
+      ...insertUser,
+      id,
+      password: hashedPassword,
+      createdAt: new Date(),
+    };
+    this.users.set(id, user);
+    return user;
+  }
+
+  async verifyPassword(userId: string, password: string): Promise<boolean> {
+    const user = await this.getUserById(userId);
+    if (!user) return false;
+    return await bcrypt.compare(password, user.password);
   }
 }
 
