@@ -1,0 +1,139 @@
+{
+  "public_pages": [
+    {
+      "name": "Home Page",
+      "icon": "🏠",
+      "purpose": "Welcome users and showcase main services.",
+      "features": [
+        "Hero section with company tagline ('Building Dreams, Creating Infrastructure')",
+        "Quick links to major sections (Projects, Gallery, Contact)",
+        "Highlighted services (Free Estimate, Project Planning, 24/7 Support)",
+        "'Get Free Project Estimate' button (CTA)"
+      ]
+    },
+    {
+      "name": "About Page",
+      "icon": "ℹ",
+      "purpose": "Share company background and credibility.",
+      "features": [
+        "Overview of company history and experience (20+ years)",
+        "Mission, vision, and values",
+        "Certifications (Licensed, Insured, LEED Certified)",
+        "Team introduction (optional)"
+      ]
+    },
+    {
+      "name": "Projects Page",
+      "icon": "🧱",
+      "purpose": "Display all ongoing and completed projects.",
+      "features": [
+        "Grid/list view of all projects",
+        "Filters: by status (Planning, In Progress, Completed) or by location",
+        "Each project card shows title, image, progress, and status",
+        "Click to view full project details"
+      ]
+    },
+    {
+      "name": "Project Details Page",
+      "icon": "🏗",
+      "purpose": "Show detailed info about a single project.",
+      "features": [
+        "Project title, description, and high-quality images",
+        "Progress bar and status badge",
+        "Location, start date, and expected completion",
+        "Option to schedule a consultation or request an estimate"
+      ]
+    },
+    {
+      "name": "Gallery Page",
+      "icon": "🖼",
+      "purpose": "Showcase completed work and progress photos.",
+      "features": [
+        "Grid of project images",
+        "Lightbox image preview (click to enlarge)",
+        "Image captions and upload dates"
+      ]
+    },
+    {
+      "name": "Contact Page",
+      "icon": "📞",
+      "purpose": "Let users reach out for quotes or consultations.",
+      "features": [
+        "Embedded Google Map (HQ location)",
+        "Contact form (name, email, phone, message)",
+        "Phone numbers (regular and 24/7 emergency)",
+        "Business hours and address",
+        "Social media links"
+      ]
+    }
+  ],
+  "admin_pages": [
+    {
+      "name": "Dashboard",
+      "icon": "📊",
+      "purpose": "Give an overview of system activity.",
+      "features": [
+        "Stats cards: Total Projects, Active Projects, Gallery Images, Website Visits",
+        "Quick Actions: Add New Project, Upload Images, Create Page",
+        "Recent Projects table with progress and completion dates",
+        "Gallery preview (recently uploaded photos)",
+        "Sync status and system readiness indicator"
+      ]
+    },
+    {
+      "name": "Manage Projects Page",
+      "icon": "🗂",
+      "purpose": "Add, edit, or delete construction projects.",
+      "features": [
+        "Project list with search and filters (by status, location, date)",
+        "Edit or delete projects",
+        "Add New Project form with title, description, location, dates, status, progress, and images",
+        "Bulk selection and batch actions"
+      ]
+    },
+    {
+      "name": "Gallery Management Page",
+      "icon": "🖼",
+      "purpose": "Manage project photos and media.",
+      "features": [
+        "Upload, delete, or update images",
+        "Tag images by project",
+        "Preview thumbnails",
+        "Sort by upload date"
+      ]
+    },
+    {
+      "name": "Create Page (CMS Content Page)",
+      "icon": "🧾",
+      "purpose": "Create custom pages for the website.",
+      "features": [
+        "WYSIWYG content editor",
+        "Add title, content, images, and links",
+        "Publish/unpublish toggle",
+        "Custom URL slug creation"
+      ]
+    },
+    {
+      "name": "Settings Page",
+      "icon": "⚙",
+      "purpose": "Control global website and company settings.",
+      "features": [
+        "Company info (name, address, email, phone)",
+        "Business hours",
+        "Social media links",
+        "Emergency contact number",
+        "Logo and favicon upload"
+      ]
+    },
+    {
+      "name": "Admin Account Page",
+      "icon": "👤",
+      "purpose": "Manage admin users and authentication.",
+      "features": [
+        "Login/Logout system",
+        "Change password",
+        "Add or remove admin users (optional if multi-admin system)"
+      ]
+    }
+  ]
+}
