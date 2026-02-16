@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
+import createMemoryStore from "memorystore";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { registerRoutes } from "./routes";
@@ -8,6 +9,7 @@ import { storage } from "./storage";
 import type { SafeUser } from "@shared/schema";
 
 const app = express();
+const MemoryStore = createMemoryStore(session);
 
 declare module 'http' {
   interface IncomingMessage {
@@ -15,11 +17,14 @@ declare module 'http' {
   }
 }
 
-// Session configuration
+// Session configuration with memorystore to prevent memory leaks
 app.use(session({
   secret: process.env.SESSION_SECRET || "kvdl-construction-secret-key-change-in-production",
   resave: false,
   saveUninitialized: false,
+  store: new MemoryStore({
+    checkPeriod: 86400000 // prune expired entries every 24h
+  }),
   cookie: {
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
@@ -71,6 +76,9 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: false }));
 
+// Serve static files from the attached_assets directory
+app.use('/attached_assets', express.static('attached_assets'));
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -121,16 +129,41 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
+
   const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
+  const listenOptions: any = {
     port,
     host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+  };
+
+  // Attempt to use reusePort where supported. On some platforms (Windows)
+  // `reusePort` is not supported and causes an ENOTSUP error. Attach an
+  // error handler so we can retry without reusePort if that happens.
+  const startServer = (opts: any) => {
+    server.listen(opts, () => {
+      log(`serving on port ${port}`);
+    });
+  };
+
+  // First try with reusePort enabled where possible.
+  try {
+    // Only set reusePort; Node will emit an error if unsupported.
+    startServer({ ...listenOptions, reusePort: true });
+
+    server.on("error", (err: any) => {
+      if (err && (err.code === "ENOTSUP" || err.code === "EOPNOTSUPP")) {
+        log("reusePort not supported on this platform, retrying without it", "express");
+        // Remove the listener to avoid duplicate handling
+        server.removeAllListeners("error");
+        startServer(listenOptions);
+      } else {
+        // rethrow if it's another error
+        throw err;
+      }
+    });
+  } catch (err) {
+    // If listen throws synchronously for some reason, try without reusePort
+    log("Failed to listen with reusePort, retrying without it", "express");
+    startServer(listenOptions);
+  }
 })();

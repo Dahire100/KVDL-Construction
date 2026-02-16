@@ -172,8 +172,8 @@ export class MemStorage implements IStorage {
       this.galleryImages.set(id, {
         id,
         imageUrl: image.imageUrl,
-        caption: image.caption,
-        projectId: image.projectId,
+        caption: image.caption ?? null,
+        projectId: image.projectId ?? null,
         uploadedAt: new Date(),
       });
     });
@@ -193,8 +193,15 @@ export class MemStorage implements IStorage {
   async createProject(insertProject: InsertProject): Promise<Project> {
     const id = randomUUID();
     const project: Project = {
-      ...insertProject,
       id,
+      title: insertProject.title,
+      description: insertProject.description,
+      location: insertProject.location,
+      status: insertProject.status,
+      progress: insertProject.progress ?? 0,
+      startDate: insertProject.startDate,
+      expectedCompletion: insertProject.expectedCompletion,
+      imageUrl: insertProject.imageUrl ?? null,
       createdAt: new Date(),
     };
     this.projects.set(id, project);
@@ -206,8 +213,15 @@ export class MemStorage implements IStorage {
     if (!existing) return undefined;
 
     const updated: Project = {
-      ...insertProject,
       id,
+      title: insertProject.title,
+      description: insertProject.description,
+      location: insertProject.location,
+      status: insertProject.status,
+      progress: insertProject.progress ?? existing.progress ?? 0,
+      startDate: insertProject.startDate,
+      expectedCompletion: insertProject.expectedCompletion,
+      imageUrl: insertProject.imageUrl ?? existing.imageUrl ?? null,
       createdAt: existing.createdAt,
     };
     this.projects.set(id, updated);
@@ -232,8 +246,10 @@ export class MemStorage implements IStorage {
   async createGalleryImage(insertImage: InsertGalleryImage): Promise<GalleryImage> {
     const id = randomUUID();
     const image: GalleryImage = {
-      ...insertImage,
       id,
+      imageUrl: insertImage.imageUrl,
+      caption: insertImage.caption ?? null,
+      projectId: insertImage.projectId ?? null,
       uploadedAt: new Date(),
     };
     this.galleryImages.set(id, image);
@@ -259,8 +275,11 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const now = new Date();
     const page: CMSPage = {
-      ...insertPage,
       id,
+      title: insertPage.title,
+      slug: insertPage.slug,
+      content: insertPage.content,
+      published: insertPage.published ?? false,
       createdAt: now,
       updatedAt: now,
     };
@@ -273,8 +292,11 @@ export class MemStorage implements IStorage {
     if (!existing) return undefined;
 
     const updated: CMSPage = {
-      ...insertPage,
       id,
+      title: insertPage.title,
+      slug: insertPage.slug,
+      content: insertPage.content,
+      published: insertPage.published ?? existing.published ?? false,
       createdAt: existing.createdAt,
       updatedAt: new Date(),
     };
@@ -292,7 +314,9 @@ export class MemStorage implements IStorage {
   }
 
   async updateSettings(insertSettings: InsertSettings): Promise<Settings> {
+    // Merge incoming settings with existing to ensure required fields are preserved
     this.settings = {
+      ...this.settings,
       ...insertSettings,
       id: this.settings.id,
     };
@@ -303,8 +327,11 @@ export class MemStorage implements IStorage {
   async createContactSubmission(insertSubmission: InsertContactSubmission): Promise<ContactSubmission> {
     const id = randomUUID();
     const submission: ContactSubmission = {
-      ...insertSubmission,
       id,
+      name: insertSubmission.name,
+      email: insertSubmission.email,
+      message: insertSubmission.message,
+      phone: insertSubmission.phone ?? null,
       submittedAt: new Date(),
     };
     this.contactSubmissions.set(id, submission);
@@ -344,9 +371,11 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const hashedPassword = await bcrypt.hash(insertUser.password, 10);
     const user: User = {
-      ...insertUser,
       id,
+      username: insertUser.username,
       password: hashedPassword,
+      email: insertUser.email,
+      role: insertUser.role ?? "admin",
       createdAt: new Date(),
     };
     this.users.set(id, user);

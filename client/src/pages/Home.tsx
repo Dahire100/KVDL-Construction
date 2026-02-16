@@ -49,7 +49,7 @@ export default function Home() {
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70" />
         </div>
-        
+
         <div className="relative z-10 container px-4 md:px-8 text-center">
           <Badge variant="outline" className="mb-6 text-white border-white/30 bg-white/10 backdrop-blur-sm px-4 py-2" data-testid="badge-hero">
             Building Excellence Since 2004
@@ -73,7 +73,7 @@ export default function Home() {
               </Button>
             </Link>
           </div>
-          
+
           <div className="mt-16 flex flex-wrap justify-center gap-8">
             {certifications.map((cert, index) => (
               <div key={index} className="flex items-center gap-2 text-white bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20">

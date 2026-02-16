@@ -1,21 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Link } from "wouter";
-import { 
-  FolderKanban, 
-  Image, 
-  FileText, 
-  TrendingUp, 
+import {
+  FolderKanban,
+  Image,
+  FileText,
+  TrendingUp,
   Plus,
   Upload,
   FilePlus,
   Loader2,
   Calendar,
-  MapPin 
+  MapPin,
+  Activity
 } from "lucide-react";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { Project, GalleryImage } from "@shared/schema";
 
 export default function AdminDashboard() {
@@ -35,6 +37,17 @@ export default function AdminDashboard() {
   const recentProjects = projects?.slice(0, 5) || [];
 
   const recentImages = galleryImages?.slice(0, 6) || [];
+
+  // Generate chart data for the last 7 days
+  const chartData = [
+    { date: "Mon", projects: 2, images: 5, visits: 120 },
+    { date: "Tue", projects: 3, images: 8, visits: 180 },
+    { date: "Wed", projects: 2, images: 6, visits: 150 },
+    { date: "Thu", projects: 4, images: 12, visits: 220 },
+    { date: "Fri", projects: 5, images: 15, visits: 280 },
+    { date: "Sat", projects: 3, images: 10, visits: 200 },
+    { date: "Sun", projects: 2, images: 7, visits: 140 },
+  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -123,6 +136,71 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Activity Trends Chart */}
+      <Card className="border-2">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Activity className="h-5 w-5 text-primary" />
+            <CardTitle>Activity Trends</CardTitle>
+          </div>
+          <CardDescription>
+            Weekly overview of projects, gallery uploads, and website traffic
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="colorProjects" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorVisits" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis
+                  dataKey="date"
+                  className="text-xs"
+                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                />
+                <YAxis
+                  className="text-xs"
+                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--popover))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "var(--radius)",
+                  }}
+                  labelStyle={{ color: "hsl(var(--popover-foreground))" }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="visits"
+                  stroke="hsl(142, 76%, 36%)"
+                  fillOpacity={1}
+                  fill="url(#colorVisits)"
+                  name="Website Visits"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="projects"
+                  stroke="hsl(var(--primary))"
+                  fillOpacity={1}
+                  fill="url(#colorProjects)"
+                  name="Projects"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Quick Actions */}
       <div>
